@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Garden</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>❤️</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background: linear-gradient(135deg, #f5f3f0 0%, #e8e2d5 50%, #f9f5f1 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><text y="16" font-size="16">🌿</text></svg>'), auto;
+        }
+
+        .floating-lyrics {
+            position: fixed;
+            font-size: 12px;
+            color: rgba(139, 101, 85, 0.1);
+            font-style: italic;
+            pointer-events: none;
+            animation: float 20s infinite linear;
+            font-family: 'Dancing Script', cursive;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        .password-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(219, 186, 164, 0.2) 0%, transparent 70%);
+            position: relative;
+            z-index: 10;
+        }
+
+        .password-page h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+            color: #8b6555;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .password-page p {
+            font-size: 1.2rem;
+            color: #7a5d4f;
+            margin: 0.5rem 0;
+        }
+
+        .password-input {
+            margin: 2rem 0 1rem 0;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border: 2px solid #dbb8a4;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            font-family: 'Dancing Script', cursive;
+            letter-spacing: 0.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #c4968a;
+            box-shadow: 0 0 15px rgba(196, 150, 138, 0.3);
+        }
+
+        .enter-button {
+            padding: 1rem 3rem;
+            background: linear-gradient(45deg, #c4968a, #dbb8a4);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-family: 'Dancing Script', cursive;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .enter-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .enter-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20px;
+            height: 200%;
+            background: rgba(255,255,255,0.3);
+            transform: rotate(25deg);
+            transition: all 0.4s;
+        }
+
+        .enter-button:hover::after {
+            left: 120%;
+        }
+
+        .garden-page {
+            display: none;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .garden-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .petal, .leaf {
+            position: absolute;
+            top: -50px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.7;
+            animation: fall linear infinite;
+        }
+
+        .petal {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23c4968a"><path d="M12,3c-4.97,0-9,4.03-9,9c0,4.97,4.03,9,9,9s9-4.03,9-9C21,7.03,16.97,3,12,3z M12,19c-3.87,0-7-3.13-7-7c0-3.87,3.13-7,7-7s7,3.13,7,7C19,15.87,15.87,19,12,19z"/></svg>');
+            width: 30px;
+            height: 30px;
+        }
+
+        .leaf {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%238b6555"><path d="M17,8C8,10,5.9,16.8,3,20c1,1,5-1,10-1s9,2,10,1C20.1,16.8,18,10,17,8z"/></svg>');
+            width: 25px;
+            height: 25px;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            border: 1px solid rgba(219, 184, 164, 0.3);
+        }
+
+        .welcome-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #c4968a, #dbb8a4, #e8d5c7);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .welcome-section h2 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.8rem;
+            color: #8b6555;
+            margin-bottom: 1rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .welcome-section p {
+            font-size: 1.1rem;
+            color: #7a5d4f;
+            font-style: italic;
+            margin: 0.5rem 0;
+        }
+
+        .photo-frame {
+            width: 100%;
+            max-width: 200px;
+            margin: 1.5rem auto;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .photo-frame img, .photo-frame video {
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transform: rotateY(0deg);
+            transition: transform 0.5s ease;
+            
+        }
+
+        .photo-frame:hover img, .photo-frame:hover video {
+            transform: rotateY(10deg);
+        }
+
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, #c4968a, #dbb8a4, #e8d5c7);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-right: 1rem;
+            margin-left: 1rem;
+            opacity: 0;
+            transform: translateY(50px);
+    
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .timeline-item:nth-child(odd) {
+            padding-right: 50%;
+            text-align: right;
+        }
+
+        .timeline-item:nth-child(even) {
+            padding-left: 50%;
+            text-align: left;
+            animation-delay: 0.2s;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .timeline-content {
+            background: rgba(255, 255, 255, 0.92);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(219, 184, 164, 0.2);
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        .timeline-icon {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #c4968a, #dbb8a4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-icon:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .section-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.2rem;
+            color: #8b6555;
+            margin-bottom: 1.5rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #c4968a, #dbb8a4);
+            border-radius: 2px;
+        }
+
+        .section-content {
+            font-size: 1.15rem;
+            color: #7a5d4f;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .lyric-quote {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.1rem;
+            color: #a08b7d;
+            font-style: italic;
+            margin-top: 1.5rem;
+            padding: 0.8rem 1rem;
+            border-left: 3px solid #dbb8a4;
+            background: rgba(219, 184, 164, 0.1);
+            border-radius: 0 10px 10px 0;
+        }
+
+        .media-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+
+        .media-item {
+            width: 150px;
+            height: 150px;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            object-fit: cover;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .media-item:hover {
+            transform: scale(1.05);
+        }
+
+        .media-item img, .media-item video {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .voice-note {
+            background: linear-gradient(45deg, #c4968a, #dbb8a4);
+            color: white;
+            border: none;
+            padding: 0.9rem 1.8rem;
+            border-radius: 25px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 1.2rem 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .voice-note::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: 0.5s;
+        }
+
+        .voice-note:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+        }
+
+        .voice-note:hover::before {
+            left: 100%;
+        }
+
+        .voice-note.playing {
+            animation: pulseAudio 1s infinite;
+        }
+
+        @keyframes pulseAudio {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .secret-section {
+            background: rgba(255, 255, 255, 0.92);
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            margin: 4rem 0;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(219, 184, 164, 0.3);
+        }
+
+        .secret-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #c4968a, #dbb8a4, #e8d5c7);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .secret-input {
+            margin: 1.5rem 0;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border: 2px solid #dbb8a4;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            font-family: 'Crimson Text', serif;
+            transition: all 0.3s ease;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        .secret-input:focus {
+            outline: none;
+            border-color: #c4968a;
+            box-shadow: 0 0 15px rgba(196, 150, 138, 0.3);
+        }
+
+        .secret-button {
+            padding: 1rem 2.5rem;
+            background: linear-gradient(45deg, #c4968a, #dbb8a4);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .secret-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        }
+
+        .final-bloom, .reasons-section {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: radial-gradient(circle at center, rgba(219, 186, 164, 0.3) 0%, transparent 70%);
+            border-radius: 30px;
+            margin: 4rem 0;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(219, 184, 164, 0.3);
+        }
+
+        .final-bloom::before, .reasons-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #c4968a, #dbb8a4, #e8d5c7);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .final-bloom h3, .reasons-section h3 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.8rem;
+            color: #8b6555;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .final-message {
+            font-size: 1.3rem;
+            color: #7a5d4f;
+            line-height: 1.8;
+            font-style: italic;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            margin: 0 auto;
+            max-width: 700px;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+
+        .final-message:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .plant-wish {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            max-width: 500px;
+            margin: 2rem auto;
+        }
+
+        .plant-wish input {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 2px solid #dbb8a4;
+            border-radius: 25px;
+            font-family: 'Crimson Text', serif;
+            font-size: 1.1rem;
+        }
+
+        .plant-wish button {
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #c4968a, #dbb8a4);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .wish-response {
+            margin-top: 1rem;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.2rem;
+            color: #8b6555;
+        }
+
+        .wish-plant {
+            width: 50px;
+            height: 50px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23c4968a"><path d="M12,3c-4.97,0-9,4.03-9,9c0,4.97,4.03,9,9,9s9-4.03,9-9C21,7.03,16.97,3,12,3z"/></svg>');
+            background-size: contain;
+            position: absolute;
+            animation: growWish 2s ease-out forwards;
+        }
+
+        @keyframes growWish {
+            0% { transform: scale(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            width: 4px;
+            height: 4px;
+            background: #dbb8a4;
+            border-radius: 50%;
+            animation: sparkle 2s ease-in-out infinite;
+            z-index: 100;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .flower-bloom {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23c4968a"><path d="M12,3c-4.97,0-9,4.03-9,9c0,4.97,4.03,9,9,9s9-4.03,9-9C21,7.03,16.97,3,12,3z"/></svg>');
+            background-size: contain;
+            opacity: 0;
+            animation: bloom 2s ease-out forwards;
+        }
+
+        @keyframes bloom {
+            0% { transform: scale(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .reasons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .reason-card {
+            background: rgba(255, 255, 255, 0.92);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(30px);
+            border: 1px solid rgba(219, 184, 164, 0.2);
+        }
+
+        .reason-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .reason-card h4 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.4rem;
+            color: #8b6555;
+            margin-bottom: 0.5rem;
+        }
+
+        .reason-card p {
+            font-size: 1rem;
+            color: #7a5d4f;
+            line-height: 1.6;
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 30px;
+            }
+
+            .timeline-item {
+                padding-left: 70px !important;
+                padding-right: 0 !important;
+                text-align: left !important;
+            }
+
+            .timeline-icon {
+                left: 30px !important;
+            }
+
+            .secret-input {
+                width: 90%;
+            }
+
+            .welcome-section, .secret-section, .final-bloom, .reasons-section {
+                padding: 1.5rem;
+            }
+
+            .photo-frame {
+                max-width: 100px;
+            }
+
+            .reasons-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-lyrics" style="left: 10%; animation-delay: 0s;">dreaming of the day when you wake up and find...</div>
+    <div class="floating-lyrics" style="left: 70%; animation-delay: 5s;">you light up my world...</div>
+    <div class="floating-lyrics" style="left: 40%; animation-delay: 10s;">as long as you love me...</div>
+    <div class="floating-lyrics" style="left: 80%; animation-delay: 15s;">you are the best thing...</div>
+
+    <div id="password-page" class="password-page">
+        <h1>hii by panda 🐼</h1>
+        <p>"I planted something special for you...Something only you and I can see as i pinky promised<3!"</p>
+        <p>Enter your secret code, Red 28 🌹</p>
+        <input type="password" id="password-input" class="password-input" placeholder="• • • • • •" maxlength="6">
+        <button onclick="checkPassword()" class="enter-button">Enter the Garden 🌿</button>
+        <div style="margin-top: 2rem; font-size: 0.9rem; color: #a08b7d; font-style: italic;">
+            "Step into the fields of our friendship..."
+        </div>
+    </div>
+
+    <div id="garden-page" class="garden-page">
+        <div class="garden-bg" id="garden-bg"></div>
+        <canvas id="garden-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;"></canvas>
+
+        <div class="welcome-section">
+            <h2>heyyy Red 28 🌼</h2>
+            <p>Make sure to have your earphones on 🎧</p>
+            <p style="margin-top: 1rem; font-size: 0.9rem;">Let's walk through the seasons of who you are, Shiva Shree...</p>
+            <div class="photo-frame">
+                <img src="./us.jpg" alt="You and Red 28">
+            </div>
+            <button class="voice-note" onclick="playWelcomeAudio()">🎵 Play Birthday Wish</button>
+            <div class="lyric-quote">"Cause all of me loves all of you" – Taylor Swift</div>
+        </div>
+
+        <div class="welcome-section">
+            <h3 class="section-title">Our Chat Garden 📱</h3>
+            <p>A glimpse of our silly, sweet moments...(screenshot fulla if u couldnt see just click the image)</p>
+            <div class="media-gallery" id="chat-carousel">
+                <div class="media-item"><img src="./c5.jpg" alt="Chat 1"></div>
+                <div class="media-item"><img src="./c7.jpg" alt="Chat 2"></div>
+                <div class="media-item"><img src="./c8.jpg" alt="Chat 3"></div>
+                <div class="media-item"><img src="./c1.jpg" alt="Chat 3"></div>
+                <div class="media-item"><img src="./c3.jpg" alt="Chat 3"></div>
+                <div class="media-item"><img src="./c2.jpg" alt="Chat 3"></div>
+                <div class="media-item"><img src="./c9.jpg" alt="Chat 3"></div>
+                <div class="media-item"><img src="./c10.jpg" alt="Chat 3"></div>
+            </div>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-icon">🌱</div>
+                <div class="timeline-content">
+                    <h3 class="section-title">Seed of Kindness</h3>
+                    <div class="media-gallery">
+                        <div class="media-item"><img src="./1.jpg" alt="Kindness"></div>
+                    </div>
+                    <p class="section-content">
+                  The seed of our friendship 🌱 was planted back in 2019, and again in 2021 — and I’m so deeply grateful 🩶 for both those times.
+I still remember wanting to text you the second time we drifted back, but hesitating… 🙈 so I asked Nive to check in instead, hoping it’d open the door.
+Somehow, life brought us back not just as friends, but even closer 🫶 — and being in the same class again after 2019 felt like something I’d never have expected ✨.
+Funny how in 10th we shared a classroom too 🏫, but never spoke… yet these seeds took root later, and look at us now 🌿❤️.
+                       <!--Tho i srsly dont remember how we started speaking ig it must have been when you were behind me and me asking you for eraser crtaaa i dont remember but yeah sharing your side dish with me , helping me , going around together these days marked the seed of our friendship <3...--> 
+                    </p>
+                    <button class="voice-note" onclick="playAudio('seed')">🎤 Listen to Voice Note</button>
+                    <div class="lyric-quote">"The best people in life are free." – So do you.</div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-icon">🪴</div>
+                <div class="timeline-content">
+                    <h3 class="section-title">Roots of Strength</h3>
+                    <div class="media-gallery">
+                        <div class="media-item"><img src="./2.jpg" alt="Strength"></div>
+                    </div>
+                    <p class="section-content">
+                        The roots of our friendship 🪴 started with the tiniest things: borrowing your eraser ✏️, that parliament leader vote when I asked you to vote for me 🗳️, sharing lunch 🍱…
+All those little, almost forgettable moments slowly grew into something strong and steady 🌱.
+And then again, between 2021–23, it was those same quiet moments: like that day I took side dish from your lunch 🍛 and gave you my cauliflower 🥦 (I still remember 😂)…
+Or the very first pic we ever took together 📸 — each tiny memory adding another root to keep us grounded together 🩶.
+<!--so yeahh having so many moments together the days we had was never enough if you ask me and yeah idk which was the sole root but eventually our friendship grew and the to the day here we aree -->                   
+</p>
+                    <button class="voice-note" onclick="playAudio('root')">🎤 Listen to Voice Note</button>
+                    <div class="lyric-quote">"What doesn't kill you makes you stronger" – you're living proof</div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-icon">🌼</div>
+                <div class="timeline-content">
+                    <h3 class="section-title">Bloom of Laughter</h3>
+                    <div class="media-gallery">
+                        <div class="media-item"><img src="./3.jpg" alt="Laughter"></div>
+                    </div>
+                    <p class="section-content">
+                      The moments of laughter… honestly, we had so many 🌼😂 that I don’t even know where to start.
+Us trolling Suneja ma’am together 🤭, or even earlier — those silent days when we barely spoke, and I’d never have guessed we’d end up like this ✨.
+Singing songs in class 🎶, sneaking to the canteen without Sheela’s knowledge 🍟🤫, and those PE classes 🏃‍♀️and sports dayss that turned into our literal entertainment days.
+All those tiny, silly, priceless moments slowly blossomed into the best kind of memories 🌿❤️ — the ones that still make me smile whenever I think of you.
+                    </p>
+                    <!--the way you used to shout and laugh rememebr which led to the name of screaminggz erumzz but the moments of laughter were indeed a lot and unforgettable-->
+                    <button class="voice-note" onclick="playAudio('laughter')">🎤 Listen to Voice Note</button>
+                    <div class="lyric-quote">"You light up my world like nobody else" – your smile does</div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-icon">🌾</div>
+                <div class="timeline-content">
+                    <h3 class="section-title">Harvest of Dreams</h3>
+                    <div class="media-gallery">
+                        <div class="media-item"><img src="./4.jpg" alt="Agriculture"></div>
+                    </div>
+                    <p class="section-content">
+                        <!--harvest of dreams... i really want us to go on a trip or date both the sch trips you didnt attend :( and remember the promise you did one day you gotta acommpany me to watch ipl match -->
+                        Dreams… we all had so many, starting way back in childhood 🌱✨.
+And now, here we are — finally stepping into our careers 🎓, ready to shine and rock it together ✨💪.
+But beyond those big goals, there was always this small, quiet dream of mine too: to have a friend who’d stay through my ups and downs, who’d be happy for my wins 🏆, and comfort me when I fall 🩶.
+And I really hope I’m someone like that for you too… and if not, I promise I’ll keep trying, keep listening — I’m all ears whenever you want to talk 🤍👂.
+I’m so glad I found that in you — even after three years apart, even after school ended 🎒, we still kept in touch, sharing every major event, laughing, gossiping, just being there for each other 🫶.
+Thank you for making something I quietly wished for come true… and yeah, there’s so much more ahead to share 🌿🤞.
+                    </p>
+                    <button class="voice-note" onclick="playAudio('dreams')">🎤 Listen to Voice Note</button>
+                    <div class="lyric-quote">"A dream is a wish your heart makes" – yours will feed nations</div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-icon">🍃</div>
+                <div class="timeline-content">
+                    <h3 class="section-title">New Season</h3>
+                    <div class="media-gallery">
+                        <div class="media-item"><img src="./5.jpg" alt="Recent"></div>
+                        
+                    </div>
+                    <p class="section-content">
+                        And yeah… here’s to another year 🌱✨ — and one year closer to getting old together 😂.
+Cheers to your 20, Red 28 🩶🥂. Shorty will always be here for you — now, then, and whenever you need me 🐼🤍.
+I really hope this year turns out to be your best yet ✨. And promise me one thing: never ever forget me… though deep down, I know you won’t 🫶.
+And hey, one year closer to getting married too 💍 — don’t forget to invite me okay? 😌🤞
+I just hope we keep growing in our own ways, yet always stay the same for each other 🌿.
+Beyond grateful for all these years, and for all the years still waiting for us ahead ❤️.
+Let’s meet soon, pretty 🩶 — and when we do, let’s take lots of pics together 📸💗. Hope it’s really, really soon ✨.Yeah Hopping to get taller than yuhhh agaiin prolly Dreamin'❤️.
+<!--yeah so new season , getting older than me ..ping me for gossips and yeah whenever you're free give me a call i just really miss us and the time we had tho ik we both are busy with our stuff and yeah anywaysss cheers to 20 older one -->
+                    </p>
+                    <button class="voice-note" onclick="playAudio('newseason')">🎤 Listen to Voice Note</button>
+                    <div class="lyric-quote">"Here's to new beginnings" – your best seasons are ahead</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="secret-section">
+            <h3 style="font-family: 'Dancing Script', cursive; font-size: 1.8rem; color: #8b6555; margin-bottom: 1rem;">
+                🪄 Secret Memories 🪄
+            </h3>
+            <p style="font-size: 1.1rem; color: #7a5d4f; margin-bottom: 1rem;">
+                Why did you become Red 28? Type it here...
+            </p>
+            <input type="text" id="secret-answer1" class="secret-input" placeholder="What's the story behind Red 28?">
+            <p style="font-size: 1.1rem; color: #7a5d4f; margin: 1rem 0;">
+                What name did I write that day?
+            </p>
+            <input type="text" id="secret-answer2" class="secret-input" placeholder="Remember the name...">
+            <br>
+            <button onclick="checkAnswer()" class="secret-button">Submit 🌹</button>
+            <div id="answer-response" style="margin-top: 1.5rem; font-family: 'Dancing Script', cursive; font-size: 1.3rem;"></div>
+        </div>
+
+        <div class="final-bloom">
+            <h3>🌸 Final Bloom</h3>
+            <div class="final-message">
+                Even fields rest after harvest, but our friendship keeps growing 🌿<br>
+                <strong>Happy Birthday, Shiva Shree!</strong><br>
+                May your new year be as vibrant as the gardens you'll create, as warm as your heart, and as endless as our bond.<br><br>
+                — With love, Shorty 🐼
+            </div>
+            <div class="media-gallery">
+                <div class="media-item">
+                    <video autoplay muted>
+                        <source src="./vido.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+            <button class="voice-note" onclick="playFinalMessage()" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                🎁 Final Birthday Message
+            </button>
+            <div class="plant-wish">
+                <h4 style="font-family: 'Dancing Script', cursive; color: #8b6555;">Plant Your Birthday Wish 🌱</h4>
+                <input type="text" id="wish-input" placeholder="Type your birthday wish...">
+                <button onclick="plantWish()">Plant It!</button>
+                <div id="wish-response" class="wish-response"></div>
+            </div>
+        </div>
+
+        <div class="reasons-section">
+            <h3>🌷 20 Reasons Why I Love You</h3>
+            <p style="font-size: 1.2rem; color: #7a5d4f; margin-bottom: 2rem; font-style: italic;">
+                For your 20th birthday, here are 20 petals of our friendship, each a reason I cherish you, Red 28.
+            </p>
+            <div class="reasons-grid">
+                <div class="reason-card">
+                    <h4>1.Birthday Song 🎶</h4>
+                    <p>he way you sang for my birthday… and yeah, you still owe me a song! This always stays at the top.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>2. Random Catch‑ups ☎️</h4>
+                    <p>Calling each other whenever we could, spilling tea, sharing stories — the random chats that always made my day.and i think i called you most the timess😏</p>
+                </div>
+                <div class="reason-card">
+                    <h4>3. Your Infectious Laugh 🗣️</h4>
+                    <p>Your laugh, those playful shouts back then… even now that you’ve grown quieter, they stay fresh in my heart.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>4. Silly Jokes 😂</h4>
+                    <p>Back in school, making fun of each other over the smallest things — those little jokes became some of my warmest memories.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>5.Pretty Girl ✨</h4>
+                    <p>Your pretty face, your soft smile… honestly, who wouldn’t fall for a heart and face like yours?..</p>
+                </div>
+                <div class="reason-card">
+                    <h4>6. Warm Hugs 🤗</h4>
+                    <p>Your hugs back in 2019… and at farewell too — even now, just remembering brings an instant smile.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>7. Best Encourager 🌟</h4>
+                    <p>Every note or surprise from you feels like a flower picked just for me.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>8. Kind Heart ❤️</h4>
+                    <p>That soft, generous heart of yours… always listening, always caring, even in silence. It made me feel seen.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>9. Your Lunch 🍱</h4>
+                    <p>Especially that side dish I loved “borrowing” — silly, but it tasted better and i am craving to try your cookingg when will it be?
+                    </p>
+                </div>
+                <div class="reason-card">
+                    <h4>10. Cute Byes 👋</h4>
+                    <p>The way you waved and said bye…when i had to stay till 7 30 back in 2021, it’s small, but cuteeee.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>11. Getting Older 😌</h4>
+                    <p>You always got older before me — silly, but it made me secretly happy to tease you of getting old before me and that you’d walk that step ahead first.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>12. Your Compliments 🥹</h4>
+                    <p>Even for my smallest, dumbest things, you’d find something kind to say. It always made my day.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>13. Partners in Crime 🏫</h4>
+                    <p>being partners in crime esp back in 9th E, and yeah the pity situation where idk to wear parliament leader scarf...ring a bell? text me the contextt</p>
+                </div>
+                <div class="reason-card">
+                    <h4>14.Nights Changed 🌙</h4>
+                    <p>It’s been 8 years since we knew each other (I knew you in 2017 itself!). Nights changed, but you stayed the same.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>15.Same Taste 🎧</h4>
+                    <p>Our shared love for the same music, series, and vibe… even hating and loving the same characters together — it always felt like home.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>16. Always Turning Up 📞</h4>
+                    <p>That time in 11th I called you last minute for the parent meeting, and later after we passed out too — you always came, without hesitation.And yeah the next time we meet i wish you could be my passanger princesss..let's see</p>
+                </div>
+                <div class="reason-card">
+                    <h4>17. Your Energy ⚡</h4>
+                    <p>That Juliet energy — playful, supportive, soft — it never faded, and it kept us close even on dull days.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>18. Through My Chaos 🫶</h4>
+                    <p>Picking me up in the morning, walking together in the evenings, standing beside me in assemblies… quietly being there through all my chaos.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>19.Teen Years 🌿</h4>
+                    <p>You were there through my teens, making them warmer, softer, real — my own Enid in this teen story of mine.</p>
+                </div>
+                <div class="reason-card">
+                    <h4>20. Just You, Red 28 ❤️</h4>
+                    <p>And finally, just you — ending your teen years where we lived our “live while we’re young” phase. Thank you for carrying every messy, soft, silly memory into your twenties. And thank you for letting me be part of it.</p>
+                </div>
+            </div>
+            <button class="voice-note" onclick="playReasonsAudio()">🎶 Hear My Voice</button>
+            <div class="reason-card">
+                    <p>Well, this really would’ve been my case if I was a guy and tolerate my singing ..not good but the best i could😭 — ‘cause I’d have definitely fallen for you… and you probably would’ve ignored me anyway 😂.
+But hey, I’m glad I’m a girl, ‘cause that gave me countless memories with you instead.
+And yeah, I’ve sung for you… so tell me, when’s your turn? 🎶😉</p>
+                </div>
+            <div class="lyric-quote">"You’re my best friend, and I love you, Red 28" – Shorty 🐼</div>
+        </div>
+
+        <div class="lightbox" id="lightbox">
+            <span class="lightbox-close" onclick="closeLightbox()">×</span>
+            <img class="lightbox-content" id="lightbox-img">
+            <video class="lightbox-content" id="lightbox-video" controls></video>
+        </div>
+    </div>
+
+    <script>
+        function initGardenCanvas() {
+            const canvas = document.getElementById('garden-canvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            const geometry = new THREE.SphereGeometry(0.1, 32, 32);
+            const material = new THREE.MeshBasicMaterial({ color: 0x8b6555 });
+            const plants = [];
+
+            for (let i = 0; i < 50; i++) {
+                const plant = new THREE.Mesh(geometry, material);
+                plant.position.set(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    -10
+                );
+                scene.add(plant);
+                plants.push(plant);
+            }
+
+            camera.position.z = 5;
+
+            function animate() {
+                requestAnimationFrame(animate);
+                plants.forEach(plant => {
+                    plant.position.y += 0.01;
+                    if (plant.position.y > 10) plant.position.y = -10;
+                });
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+            });
+        }
+
+        function createSparkle() {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = Math.random() * window.innerWidth + 'px';
+            sparkle.style.top = Math.random() * window.innerHeight + 'px';
+            document.body.appendChild(sparkle);
+            setTimeout(() => document.body.removeChild(sparkle), 2000);
+        }
+
+        function createGardenBg() {
+            const gardenBg = document.getElementById('garden-bg');
+            for (let i = 0; i < 30; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+                petal.style.left = Math.random() * 100 + '%';
+                petal.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                petal.style.animationDelay = Math.random() * 10 + 's';
+                gardenBg.appendChild(petal);
+
+                const leaf = document.createElement('div');
+                leaf.className = 'leaf';
+                leaf.style.left = Math.random() * 100 + '%';
+                leaf.style.animationDuration = (Math.random() * 10 + 20) + 's';
+                leaf.style.animationDelay = Math.random() * 15 + 's';
+                gardenBg.appendChild(leaf);
+            }
+        }
+
+        function createBloomEffect(x, y) {
+            const bloom = document.createElement('div');
+            bloom.className = 'flower-bloom';
+            bloom.style.left = x + 'px';
+            bloom.style.top = y + 'px';
+            document.body.appendChild(bloom);
+            setTimeout(() => document.body.removeChild(bloom), 2000);
+        }
+
+        function plantWish() {
+            const wishInput = document.getElementById('wish-input');
+            const wishText = wishInput.value.trim();
+            const wishResponse = document.getElementById('wish-response');
+            if (wishText) {
+                const plant = document.createElement('div');
+                plant.className = 'wish-plant';
+                plant.style.left = Math.random() * window.innerWidth + 'px';
+                plant.style.top = Math.random() * window.innerHeight + 'px';
+                document.body.appendChild(plant);
+                setTimeout(() => document.body.removeChild(plant), 2000);
+
+                wishResponse.textContent = 'Hope your wish comes true, your wish will be in my prayers';
+                wishInput.value = '';
+                createBloomEffect(window.innerWidth / 2, window.innerHeight / 2);
+            }
+        }
+
+        const bgAudio = new Audio('./lover.mp3');
+        bgAudio.loop = true;
+        bgAudio.volume = 0.2;
+
+        function checkPassword() {
+            const input = document.getElementById('password-input').value;
+            const correct = '020823';
+            if (input === correct) {
+                document.getElementById('password-page').style.display = 'none';
+                document.getElementById('garden-page').style.display = 'block';
+                createGardenBg();
+                initGardenCanvas();
+                bgAudio.play();
+                window.scrollTo(0, 0);
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(createSparkle, i * 100);
+                }
+            } else {
+                alert('Wrong code, try again Red 28! 🌹');
+                document.getElementById('password-input').value = '';
+            }
+        }
+
+        function checkAnswer() {
+            const answer1 = document.getElementById('secret-answer1').value.toLowerCase().trim();
+            const answer2 = document.getElementById('secret-answer2').value.toLowerCase().trim();
+            const response = document.getElementById('answer-response');
+            const correctAnswer1 = 'english test'; // Replace with actual reason
+            const correctAnswer2 = 'annamalai2322'; // Replace with actual name
+
+            const isCorrect = answer1.includes(correctAnswer1) && answer2.includes(correctAnswer2);
+            const status = isCorrect ? 'Correct' : 'Incorrect';
+
+            // Send email with answers
+            fetch('/send-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    to: 'rameshranusha4@gmail.com', // Replace with your actual email
+                    subject: `Red 28 Secret Answers (${status})`,
+                    body: `Answer 1 (Why Red 28?): ${answer1}\nAnswer 2 (Name written): ${answer2}\nStatus: ${status}`
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Failed to send email');
+                }
+            })
+            .catch(error => {
+                console.error('Error sending email:', error);
+            });
+
+            if (isCorrect) {
+                response.innerHTML = "That's why you're my Red 28 forever! Love, Shorty 🐼 ❤️";
+                response.style.color = '#c4968a';
+                for (let i = 0; i < 15; i++) {
+                    setTimeout(() => {
+                        createSparkle();
+                        createBloomEffect(
+                            Math.random() * window.innerWidth,
+                            Math.random() * window.innerHeight
+                        );
+                    }, i * 200);
+                }
+            } else {
+                response.innerHTML = "Hmm... try remembering harder, Shiva Shree! 💭";
+                response.style.color = '#a08b7d';
+            }
+        }
+
+        function playWelcomeAudio() {
+            const audio = new Audio('./opening.mp3');
+            const button = event.currentTarget;
+            button.classList.add('playing');
+            audio.play();
+            audio.onended = () => button.classList.remove('playing');
+        }
+
+        function playAudio(section) {
+            const audio = new Audio(`./${section}.mp3`);
+            const button = event.currentTarget;
+            button.classList.add('playing');
+            audio.play();
+            audio.onended = () => button.classList.remove('playing');
+        }
+
+        function playFinalMessage() {
+            const audio = new Audio('./final.mp3');
+            const button = event.currentTarget;
+            button.classList.add('playing');
+            audio.play();
+            audio.onended = () => button.classList.remove('playing');
+        }
+
+
+
+        function openLightbox(src, type) {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            const video = document.getElementById('lightbox-video');
+            if (type === 'image') {
+                img.src = src;
+                img.style.display = 'block';
+                video.style.display = 'none';
+            } else {
+                video.src = src;
+                video.style.display = 'block';
+                img.style.display = 'none';
+            }
+            lightbox.style.display = 'flex';
+        }
+        function playReasonsAudio() {
+            const audio = new Audio('./myvoice.mp3');
+            const button = event.currentTarget;
+            button.classList.add('playing');
+            audio.play();
+            audio.onended = () => button.classList.remove('playing');
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            const video = document.getElementById('lightbox-video');
+            video.pause();
+            lightbox.style.display = 'none';
+        }
+
+        document.getElementById('password-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        document.getElementById('secret-answer1').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkAnswer();
+        });
+
+        document.getElementById('secret-answer2').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkAnswer();
+        });
+
+        document.getElementById('wish-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') plantWish();
+        });
+
+        document.querySelectorAll('.media-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const src = item.querySelector('img, video source')?.src || item.querySelector('img, video').src;
+                const type = item.querySelector('img') ? 'image' : 'video';
+                openLightbox(src, type);
+            });
+        });
+
+        const carousel = document.getElementById('chat-carousel');
+        if (carousel) {
+            gsap.to(carousel.children, {
+                x: '-=150',
+                duration: 2,
+                repeat: -1,
+                ease: 'linear',
+                modifiers: {
+                    x: x => {
+                        const totalWidth = carousel.children.length * 150;
+                        return ((parseFloat(x) % totalWidth) + totalWidth) % totalWidth;
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            createBloomEffect(e.clientX, e.clientY);
+        });
+
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        setTimeout(() => {
+            document.querySelectorAll('.timeline-item, .reason-card').forEach(item => {
+                observer.observe(item);
+            });
+        }, 1000);
+    </script>
+</body>
+</html>
